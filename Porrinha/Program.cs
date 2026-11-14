@@ -24,21 +24,17 @@ if (nomeJogador == "")
     nomeJogador = "Jogador";
 }
 
-// TODO 1: o vetor de nomes tem o nome lido e o texto "Computador"
 string[] nomes = { nomeJogador, "Computador" };
-// TODO 2: os dois jogadores começam com PALITOS_INICIAIS
 int[] palitos = { PALITOS_INICIAIS, PALITOS_INICIAIS };
 int[] escolhas = new int[2];
 int[] palpites = new int[2];
 
 int rodada = 1;
-bool valido;
 
 Console.WriteLine();
 Console.WriteLine($"Olá, {nomes[JOGADOR]}! Hoje você vai enfrentar o {nomes[COMPUTADOR]}.");
 Console.WriteLine($"Cada jogador começa com {PALITOS_INICIAIS} palitos.");
 
-// TODO 3: reescreva a condição do while usando o vetor palitos
 while (palitos[JOGADOR] > 0 && palitos[COMPUTADOR] > 0)
 {
     Console.WriteLine();
@@ -47,7 +43,6 @@ while (palitos[JOGADOR] > 0 && palitos[COMPUTADOR] > 0)
     for (int j = 0; j < nomes.Length; j++)
     {
         Console.Write($"{nomes[j]}: ");
-        // TODO 4: desenhe um "| " para cada palito do jogador j
         for (int i = 0; i < palitos[j]; i++)
         {
             Console.Write("| ");
@@ -57,82 +52,42 @@ while (palitos[JOGADOR] > 0 && palitos[COMPUTADOR] > 0)
     Console.WriteLine();
 
     // ---------- Escolha do jogador (com validação) ----------
-    do
-    {
-        Console.Write($"Quantos palitos você vai esconder na mão (0 a {palitos[JOGADOR]})? ");
-        valido = int.TryParse(Console.ReadLine(), out escolhas[JOGADOR])
-                 && escolhas[JOGADOR] >= 0 && escolhas[JOGADOR] <= palitos[JOGADOR];
-        if (!valido)
-        {
-            Console.WriteLine($"Valor inválido! Digite um número de 0 a {palitos[JOGADOR]}.");
-        }
-    } while (!valido);
+    escolhas[JOGADOR] = LerInteiro($"Quantos palitos você vai esconder na mão (0 a {palitos[JOGADOR]})? ", 0, palitos[JOGADOR]);
 
     escolhas[COMPUTADOR] = Random.Shared.Next(0, palitos[COMPUTADOR] + 1);
 
-    // TODO 5: some todas as posições do vetor palitos em maximoPalpite
-    int maximoPalpite = 0;
-    for (int j = 0; j < palitos.Length; j++)
-    {
-        maximoPalpite += palitos[j];
-    }
+    // TODO 6: use a função Somar com o vetor palitos
+    int maximoPalpite = Somar(palitos);
 
     // ---------- Palpites: quem começa alterna a cada rodada ----------
     if (rodada % 2 == 1)
     {
-        do
-        {
-            Console.Write($"Seu palpite para o total (0 a {maximoPalpite}): ");
-            valido = int.TryParse(Console.ReadLine(), out palpites[JOGADOR])
-                     && palpites[JOGADOR] >= 0 && palpites[JOGADOR] <= maximoPalpite;
-            if (!valido)
-            {
-                Console.WriteLine($"Palpite inválido! Digite um número de 0 a {maximoPalpite}.");
-            }
-        } while (!valido);
-
-        // O Computador sorteia de novo enquanto o palpite dele for igual ao do jogador
-        do
-        {
-            palpites[COMPUTADOR] = Random.Shared.Next(0, maximoPalpite + 1);
-        } while (palpites[COMPUTADOR] == palpites[JOGADOR]);
-
+        // TODO 7: leia o palpite do jogador com LerInteiro (de 0 a maximoPalpite)
+        palpites[JOGADOR] = LerInteiro($"Seu palpite para o total (0 a {maximoPalpite}): ", 0, maximoPalpite);
+        palpites[COMPUTADOR] = PalpiteComputador(escolhas[COMPUTADOR], palitos[JOGADOR], palpites[JOGADOR]);
         Console.WriteLine($"O {nomes[COMPUTADOR]} chutou {palpites[COMPUTADOR]}.");
     }
     else
     {
-        palpites[COMPUTADOR] = Random.Shared.Next(0, maximoPalpite + 1);
+        // TODO 8: o Computador chuta primeiro, então não há palpite proibido
+        palpites[COMPUTADOR] = PalpiteComputador(escolhas[COMPUTADOR], palitos[JOGADOR], -1);
         Console.WriteLine($"O {nomes[COMPUTADOR]} chuta primeiro: {palpites[COMPUTADOR]}.");
 
-        do
+        palpites[JOGADOR] = LerInteiro($"Seu palpite para o total (0 a {maximoPalpite}): ", 0, maximoPalpite);
+        while (palpites[JOGADOR] == palpites[COMPUTADOR])
         {
-            Console.Write($"Seu palpite para o total (0 a {maximoPalpite}): ");
-            valido = int.TryParse(Console.ReadLine(), out palpites[JOGADOR])
-                     && palpites[JOGADOR] >= 0 && palpites[JOGADOR] <= maximoPalpite;
-            if (!valido)
-            {
-                Console.WriteLine($"Palpite inválido! Digite um número de 0 a {maximoPalpite}.");
-            }
-            else if (palpites[JOGADOR] == palpites[COMPUTADOR])
-            {
-                Console.WriteLine("Esse palpite já foi dado! Escolha outro.");
-                valido = false;
-            }
-        } while (!valido);
+            Console.WriteLine("Esse palpite já foi dado! Escolha outro.");
+            palpites[JOGADOR] = LerInteiro($"Seu palpite para o total (0 a {maximoPalpite}): ", 0, maximoPalpite);
+        }
     }
 
-    // TODO 6: some todas as escolhas em total, como foi feito com o maximoPalpite
-    int total = 0;
-    for (int j = 0; j < escolhas.Length; j++)
-    {
-        total += escolhas[j];
-    }
+    // TODO 9: use a função Somar com o vetor escolhas
+    int total = Somar(escolhas);
 
     Console.WriteLine();
     Console.WriteLine("Mãos abertas!");
     for (int j = 0; j < nomes.Length; j++)
     {
-        // TODO 7: mostre "Ana escondeu 2." para cada jogador
         Console.WriteLine($"{nomes[j]} escondeu {escolhas[j]}.");
     }
     Console.WriteLine($"Total na mesa: {total}");
@@ -153,16 +108,13 @@ while (palitos[JOGADOR] > 0 && palitos[COMPUTADOR] > 0)
     bool alguemAcertou = false;
     for (int j = 0; j < nomes.Length; j++)
     {
-        // TODO 8: o jogador j acertou?
         if (palpites[j] == total)
         {
             Console.WriteLine($"{nomes[j]} acertou! Descarta um palito.");
-            // TODO 9: tire um palito do jogador j
             palitos[j]--;
             alguemAcertou = true;
         }
     }
-    // TODO 10: se ninguém acertou, mostre "Ninguém acertou. Ninguém descarta."
     if (!alguemAcertou)
     {
         Console.WriteLine("Ninguém acertou. Ninguém descarta.");
@@ -184,3 +136,50 @@ else
 }
 Console.WriteLine($"A partida durou {rodada - 1} rodadas.");
 Console.WriteLine("==========================================");
+
+// =====================================================
+//  FUNÇÕES
+// =====================================================
+
+// Lê um número inteiro do teclado e só devolve quando ele
+// for válido e estiver entre minimo e maximo.
+static int LerInteiro(string mensagem, int minimo, int maximo)
+{
+    int valor;
+    bool valido;
+    do
+    {
+        Console.Write(mensagem);
+        valido = int.TryParse(Console.ReadLine(), out valor)
+                 && valor >= minimo && valor <= maximo;
+        if (!valido)
+        {
+            Console.WriteLine($"Valor inválido! Digite um número de {minimo} a {maximo}.");
+        }
+    } while (!valido);
+    return valor;
+}
+
+// Soma todos os valores de um vetor de inteiros.
+static int Somar(int[] valores)
+{
+    int soma = 0;
+    for (int i = 0; i < valores.Length; i++)
+    {
+        soma += valores[i];
+    }
+    return soma;
+}
+
+// O palpite "à moda do Seu Zé": o Computador sabe quantos palitos
+// escondeu e só chuta quantos o adversário pode ter na mão.
+// Nunca repete o palpiteProibido (use -1 quando não houver).
+static int PalpiteComputador(int escolhaPropria, int palitosAdversario, int palpiteProibido)
+{
+    int palpite;
+    do
+    {
+        palpite = escolhaPropria + Random.Shared.Next(0, palitosAdversario + 1);
+    } while (palpite == palpiteProibido);
+    return palpite;
+}
