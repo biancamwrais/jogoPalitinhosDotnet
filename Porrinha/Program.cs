@@ -12,10 +12,7 @@ const int PALITOS_INICIAIS = 3;
 const int JOGADOR = 0;
 const int COMPUTADOR = 1;
 
-Console.WriteLine("==========================================");
-Console.WriteLine("        BEM-VINDO AO BAR DO SEU ZÉ        ");
-Console.WriteLine("==========================================");
-Console.WriteLine();
+ExibirTitulo();
 
 Console.Write("Qual é o seu nome? ");
 string nomeJogador = Console.ReadLine() ?? "";
@@ -24,22 +21,67 @@ if (nomeJogador == "")
     nomeJogador = "Jogador";
 }
 
-string[] nomes = { nomeJogador, "Computador" };
-int[] palitos = { PALITOS_INICIAIS, PALITOS_INICIAIS };
-int[] escolhas = new int[2];
-int[] palpites = new int[2];
+int opcao;
+do
+{
+    ExibirMenu();
+    // TODO 1: leia a opção do menu com LerInteiro (de 1 a 3)
+    opcao = LerInteiro("Escolha uma opção: ", 1, 3);
 
-int rodada = 1;
+    switch (opcao)
+    {
+        case 1:
+            JogarPartida(nomeJogador);
+            break;
+        case 2:
+            // TODO 2: mostre as regras
+            ExibirRegras();
+            break;
+        case 3:
+            Console.WriteLine("Até sexta que vem no Bar do Seu Zé!");
+            break;
+    }
+} while (opcao != 3);
 
-Console.WriteLine();
-Console.WriteLine($"Olá, {nomes[JOGADOR]}! Hoje você vai enfrentar o {nomes[COMPUTADOR]}.");
-Console.WriteLine($"Cada jogador começa com {PALITOS_INICIAIS} palitos.");
+// =====================================================
+//  PROCEDIMENTOS
+// =====================================================
 
-while (palitos[JOGADOR] > 0 && palitos[COMPUTADOR] > 0)
+static void ExibirTitulo()
+{
+    // TODO 4: mova para cá as quatro linhas que mostram o título do bar
+    Console.WriteLine("==========================================");
+    Console.WriteLine("        BEM-VINDO AO BAR DO SEU ZÉ        ");
+    Console.WriteLine("==========================================");
+    Console.WriteLine();
+}
+
+static void ExibirMenu()
 {
     Console.WriteLine();
-    Console.WriteLine($"============== RODADA {rodada} ==============");
+    Console.WriteLine("---------------- MENU ----------------");
+    Console.WriteLine("1 - Jogar uma partida");
+    Console.WriteLine("2 - Ver as regras");
+    Console.WriteLine("3 - Sair");
+}
 
+static void ExibirRegras()
+{
+    Console.WriteLine();
+    Console.WriteLine("REGRAS DA PORRINHA");
+    Console.WriteLine($"- Cada jogador começa com {PALITOS_INICIAIS} palitos.");
+    // TODO 5: complete com as outras regras do jogo (veja o README)
+    Console.WriteLine("- A cada rodada, cada jogador esconde na mão fechada de 0 até todos os palitos que ainda tem.");
+    Console.WriteLine("- Cada jogador dá um palpite do total de palitos nas duas mãos juntas.");
+    Console.WriteLine("- O segundo a chutar não pode repetir o palpite do primeiro.");
+    Console.WriteLine("- Quem chuta primeiro alterna a cada rodada.");
+    Console.WriteLine("- Quem acertar o total descarta um palito.");
+    Console.WriteLine("- Vence quem ficar sem palitos primeiro.");
+}
+
+static void ExibirPlacar(string[] nomes, int[] palitos)
+{
+    // TODO 6: mova para cá o desenho dos palitos de cada jogador
     for (int j = 0; j < nomes.Length; j++)
     {
         Console.Write($"{nomes[j]}: ");
@@ -50,40 +92,12 @@ while (palitos[JOGADOR] > 0 && palitos[COMPUTADOR] > 0)
         Console.WriteLine();
     }
     Console.WriteLine();
+}
 
-    // ---------- Escolha do jogador (com validação) ----------
-    escolhas[JOGADOR] = LerInteiro($"Quantos palitos você vai esconder na mão (0 a {palitos[JOGADOR]})? ", 0, palitos[JOGADOR]);
-
-    escolhas[COMPUTADOR] = Random.Shared.Next(0, palitos[COMPUTADOR] + 1);
-
-    // TODO 6: use a função Somar com o vetor palitos
-    int maximoPalpite = Somar(palitos);
-
-    // ---------- Palpites: quem começa alterna a cada rodada ----------
-    if (rodada % 2 == 1)
-    {
-        // TODO 7: leia o palpite do jogador com LerInteiro (de 0 a maximoPalpite)
-        palpites[JOGADOR] = LerInteiro($"Seu palpite para o total (0 a {maximoPalpite}): ", 0, maximoPalpite);
-        palpites[COMPUTADOR] = PalpiteComputador(escolhas[COMPUTADOR], palitos[JOGADOR], palpites[JOGADOR]);
-        Console.WriteLine($"O {nomes[COMPUTADOR]} chutou {palpites[COMPUTADOR]}.");
-    }
-    else
-    {
-        // TODO 8: o Computador chuta primeiro, então não há palpite proibido
-        palpites[COMPUTADOR] = PalpiteComputador(escolhas[COMPUTADOR], palitos[JOGADOR], -1);
-        Console.WriteLine($"O {nomes[COMPUTADOR]} chuta primeiro: {palpites[COMPUTADOR]}.");
-
-        palpites[JOGADOR] = LerInteiro($"Seu palpite para o total (0 a {maximoPalpite}): ", 0, maximoPalpite);
-        while (palpites[JOGADOR] == palpites[COMPUTADOR])
-        {
-            Console.WriteLine("Esse palpite já foi dado! Escolha outro.");
-            palpites[JOGADOR] = LerInteiro($"Seu palpite para o total (0 a {maximoPalpite}): ", 0, maximoPalpite);
-        }
-    }
-
-    // TODO 9: use a função Somar com o vetor escolhas
-    int total = Somar(escolhas);
-
+static void ExibirRevelacao(string[] nomes, int[] escolhas, int total)
+{
+    // TODO 7: mova para cá a revelação: "Mãos abertas!", o for que mostra
+    //         quanto cada jogador escondeu, o total e o switch do Seu Zé
     Console.WriteLine();
     Console.WriteLine("Mãos abertas!");
     for (int j = 0; j < nomes.Length; j++)
@@ -104,45 +118,104 @@ while (palitos[JOGADOR] > 0 && palitos[COMPUTADOR] > 0)
             Console.WriteLine("Seu Zé: \"Olha a mesa cheia de palito!\"");
             break;
     }
+}
 
-    bool alguemAcertou = false;
-    for (int j = 0; j < nomes.Length; j++)
+// Passagem por REFERÊNCIA: a alteração vale para a variável original.
+static void DescartarPalito(ref int palitosDoJogador)
+{
+    // TODO 8: tire um palito
+    palitosDoJogador--;
+}
+
+static void AnunciarVencedor(string[] nomes, int[] palitos, int rodadas)
+{
+    // TODO 9: mova para cá o anúncio do vencedor, usando o parâmetro rodadas
+    //         no lugar de "rodada - 1"
+    Console.WriteLine();
+    Console.WriteLine("==========================================");
+    if (palitos[JOGADOR] == 0)
     {
-        if (palpites[j] == total)
+        Console.WriteLine($"PARABÉNS, {nomes[JOGADOR]}! Você venceu a porrinha!");
+    }
+    else
+    {
+        Console.WriteLine($"O {nomes[COMPUTADOR]} venceu desta vez. Bora treinar mais!");
+    }
+    Console.WriteLine($"A partida durou {rodadas} rodadas.");
+    Console.WriteLine("==========================================");
+}
+
+static void JogarPartida(string nomeJogador)
+{
+    string[] nomes = { nomeJogador, "Computador" };
+    int[] palitos = { PALITOS_INICIAIS, PALITOS_INICIAIS };
+    int[] escolhas = new int[2];
+    int[] palpites = new int[2];
+    int rodada = 1;
+
+    while (palitos[JOGADOR] > 0 && palitos[COMPUTADOR] > 0)
+    {
+        Console.WriteLine();
+        Console.WriteLine($"============== RODADA {rodada} ==============");
+        // TODO 10: chame o procedimento que mostra o placar
+        ExibirPlacar(nomes, palitos);
+
+        // TODO 11: mova para cá as escolhas e os palpites (do bloco 06)
+        escolhas[JOGADOR] = LerInteiro($"Quantos palitos você vai esconder na mão (0 a {palitos[JOGADOR]})? ", 0, palitos[JOGADOR]);
+        escolhas[COMPUTADOR] = Random.Shared.Next(0, palitos[COMPUTADOR] + 1);
+
+        int maximoPalpite = Somar(palitos);
+
+        if (rodada % 2 == 1)
         {
-            Console.WriteLine($"{nomes[j]} acertou! Descarta um palito.");
-            palitos[j]--;
-            alguemAcertou = true;
+            palpites[JOGADOR] = LerInteiro($"Seu palpite para o total (0 a {maximoPalpite}): ", 0, maximoPalpite);
+            palpites[COMPUTADOR] = PalpiteComputador(escolhas[COMPUTADOR], palitos[JOGADOR], palpites[JOGADOR]);
+            Console.WriteLine($"O {nomes[COMPUTADOR]} chutou {palpites[COMPUTADOR]}.");
         }
-    }
-    if (!alguemAcertou)
-    {
-        Console.WriteLine("Ninguém acertou. Ninguém descarta.");
+        else
+        {
+            palpites[COMPUTADOR] = PalpiteComputador(escolhas[COMPUTADOR], palitos[JOGADOR], -1);
+            Console.WriteLine($"O {nomes[COMPUTADOR]} chuta primeiro: {palpites[COMPUTADOR]}.");
+
+            palpites[JOGADOR] = LerInteiro($"Seu palpite para o total (0 a {maximoPalpite}): ", 0, maximoPalpite);
+            while (palpites[JOGADOR] == palpites[COMPUTADOR])
+            {
+                Console.WriteLine("Esse palpite já foi dado! Escolha outro.");
+                palpites[JOGADOR] = LerInteiro($"Seu palpite para o total (0 a {maximoPalpite}): ", 0, maximoPalpite);
+            }
+        }
+
+        int total = Somar(escolhas);
+        // TODO 12: chame o procedimento da revelação
+        ExibirRevelacao(nomes, escolhas, total);
+
+        bool alguemAcertou = false;
+        for (int j = 0; j < nomes.Length; j++)
+        {
+            if (palpites[j] == total)
+            {
+                Console.WriteLine($"{nomes[j]} acertou! Descarta um palito.");
+                // TODO 13: use DescartarPalito para tirar um palito do jogador j
+                DescartarPalito(ref palitos[j]);
+                alguemAcertou = true;
+            }
+        }
+        if (!alguemAcertou)
+        {
+            Console.WriteLine("Ninguém acertou. Ninguém descarta.");
+        }
+
+        rodada++;
     }
 
-    rodada++;
+    // TODO 14: anuncie o vencedor
+    AnunciarVencedor(nomes, palitos, rodada - 1);
 }
-
-// ---------- Fim da partida ----------
-Console.WriteLine();
-Console.WriteLine("==========================================");
-if (palitos[JOGADOR] == 0)
-{
-    Console.WriteLine($"PARABÉNS, {nomes[JOGADOR]}! Você venceu a porrinha!");
-}
-else
-{
-    Console.WriteLine($"O {nomes[COMPUTADOR]} venceu desta vez. Bora treinar mais!");
-}
-Console.WriteLine($"A partida durou {rodada - 1} rodadas.");
-Console.WriteLine("==========================================");
 
 // =====================================================
 //  FUNÇÕES
 // =====================================================
 
-// Lê um número inteiro do teclado e só devolve quando ele
-// for válido e estiver entre minimo e maximo.
 static int LerInteiro(string mensagem, int minimo, int maximo)
 {
     int valor;
@@ -160,7 +233,6 @@ static int LerInteiro(string mensagem, int minimo, int maximo)
     return valor;
 }
 
-// Soma todos os valores de um vetor de inteiros.
 static int Somar(int[] valores)
 {
     int soma = 0;
@@ -171,9 +243,6 @@ static int Somar(int[] valores)
     return soma;
 }
 
-// O palpite "à moda do Seu Zé": o Computador sabe quantos palitos
-// escondeu e só chuta quantos o adversário pode ter na mão.
-// Nunca repete o palpiteProibido (use -1 quando não houver).
 static int PalpiteComputador(int escolhaPropria, int palitosAdversario, int palpiteProibido)
 {
     int palpite;
